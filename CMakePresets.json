@@ -1,0 +1,65 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "macOS-Debug",
+            "displayName": "macOS-Debug",
+            "description": "Debug build for macOS",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/llvm@17",
+                "ADEPT_LINK_LLVM_STATIC": false,
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm@17/bin/clang",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@17/bin/clang++",
+                "ADEPT_ENABLE_ASAN": true,
+                "ADEPT_ENABLE_LSAN": true
+            }
+        },
+        {
+            "name": "macOS-Release",
+            "displayName": "macOS-Release",
+            "description": "Release build for macOS",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm@17/bin/clang",
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/opt/llvm@17/bin/clang++",
+                "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/llvm@17",
+                "ADEPT_LINK_LLVM_STATIC": false
+            }
+        },
+        {
+            "name": "windows-Debug",
+            "description": "Debug build for windows",
+            "displayName": "windows-Debug",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "__comment1": "Curl for mingw-64 from https://curl.se/download.html",
+                "__comment2": "LLVM for mingw-64 was manually built using mingw-64 and MinGW Makefiles",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_PREFIX_PATH": "C:/Users/isaac/Projects/llvm-7.0.0.src/mingw-release;C:/Users/isaac/Projects/curl-7.79.1_4-win64-mingw/curl-7.79.1-win64-mingw",
+                "ADEPT_LINK_LLVM_STATIC": true,
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            }
+        },
+        {
+            "name": "windows-Release",
+            "description": "Release build for windows",
+            "displayName": "windows-Release",
+            "generator": "MinGW Makefiles",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "__comment1": "Curl for mingw-64 from https://curl.se/download.html",
+                "__comment2": "LLVM for mingw-64 was manually built using mingw-64 and MinGW Makefiles in release mode",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_PREFIX_PATH": "C:/Users/isaac/Projects/llvm-7.0.0.src/mingw-release;C:/Users/isaac/Projects/curl-7.79.1_4-win64-mingw/curl-7.79.1-win64-mingw",
+                "ADEPT_LINK_LLVM_STATIC": true
+            }
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+# GROUPED VERSION OF TODO SECTION OF VERBOSE.TODOLIST
+#        CREATED FRIDAY OCTOBER 11 2019
+# --------------------------------------------
+
+FEATURE:
+* Test type of polymorphic type - 'if $Unit Damagable'
+* Finish 'Any'
+    * Casting to Any from non-builtin types
+* __String__ function?
+* Override for += -= *= /= %= operators
+* Make __defer__ for fixed arrays be a function/method
+* Local functions
+* Reverse repeat
+
+VERIFICATION:
+* ir_to_llvm_type circular containment detection
+* Throw errors for fields with duplicate names in structs
+* Don't allow void in places it doesn't make sense
+* Don't allow multiple polymorphic types with the same name and number of parameters
+* Add some type of warning for returning 'String's and 'List's without 'commit()'ing them
+
+COMPLETENESS:
+* __pass__ for fixed arrays maybe
+* __assign__ for fixed arrays maybe
+* Allow polymorphic names for generic bases
+* Allow for self-referencing pointers
+* Replace != management function with !__equals__
+* Support 64-bit numeric literals without suffixes
+* Allow functionCall().methodCall().methodCall() like statements
+* Allow skipping __pass__ calls with functionCall(POD value1, POD value2)
+* Conform default arguments to required argument type
+
+UNINTENDED:
+* Fix bug with #if as statement for single line if
+
+TOOL:
+* pragma runtime_safe
+* pragma project_root 'main.adept'
+
+DEBUG:
+* Improve compiler memory tracking
+
+SPEED:
+* Improve inference stage's speed
+
+IDEA:
+* 'Super' keyword type which is the primary parent struct
+* 'super' keyword which is the same as (this as *Super)
+* String.adept ideas: // prepare, ready, append, appendOnce, remove, fracture, distance, contains, getUntil, getUntilOneOf, atUntil, atUntilOneOf, deleteUntil, deleteUntilOneOf, getUntilLast, count, upper, lower, empty, in-place versions etc., removeFromFront, trim, extractDATATYPEs, words?, etc.
+* Option to print parameter names for function suggestions --more-info
+* Do constant casting when available and allow casting for switch cases
+* Add support multiple value cases for switch
+* Maybe have a 'break' like thing for skipping over the rest of a case in a switch statement?
+* Add way to do "synergy"s between modules

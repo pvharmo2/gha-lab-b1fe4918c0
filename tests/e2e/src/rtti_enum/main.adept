@@ -1,0 +1,21 @@
+
+pragma compiler_version '2.8'
+
+import basics
+
+enum MyEnum (NONE, ERROR, WARNING, INFO, ICON)
+
+func main {
+    print("Information about every enum used:")
+
+    // NOTE: Types that are never used will not show up in RTTI
+    // (we will use MyEnum here so that it'll be included in our runtime info)
+    _used MyEnum
+
+    each *AnyType in [__types__, __types_length__] {
+        if it.kind == ::ENUM {
+            as_enum *AnyEnumType = it as *AnyEnumType
+            printf("  %s : %S\n", as_enum.name, toString(Array(as_enum.members, as_enum.length)))
+        }
+    }
+}

@@ -1,0 +1,180 @@
+# Overall Things for Adept 2.8
+
+HIGH-PRIORITY:
+
+MEDIUM-PRIORITY:
+* 'each-in' loops with custom 'idx' name
+    ```
+    each object Object in objects using object_idx {
+        
+    }
+    ```
+* 'break default' to break to default condition of switch statement
+* __return__ and return POD
+* @incognito
+* traits/interfaces and 'derive Thingable1, Thingable2, Thingable3 for Thing'
+* built-in meta functions like supports()
+* static asserts
+* compile-time evaluation
+* better error propagation mechanism
+* better enums
+* module system
+* Self type
+* change 'scanInt' and friends to consume entire input line unlike 'skimInt'
+* add variants of 'toInt' and friends that can fail on invalid input
+* change 'scan(String, *int)' and friends to fail on invalid input
+* add 'scanLong' and other variants
+* add support for 'using my_idx_variable_name' in 'each-in' loops
+* add support for using 'const' on global variables
+* better IDE insight
+* 'indexOf()', 'find()', and better 'join()' for String
+* 'sub()', 'segment()', 'find()' and 'sort()' for List
+* make StringView into "recognized builtin type" for editors
+* maybe make it so you don't have to return after an exhaustive switch?
+* lambdas
+* nested functions
+* try operator, ?! or something (along with management function __try__(value POD Value) bool)
+* allow blocks/conditionals to be used as expressions and yield values
+* make $~T be instantiated as $T when they differ
+* revise 'unused variable' warning message
+* make records use the newly added "better constructors"
+* prefer used-defined constructor over automatically generated constructor for records
+* better struct literals
+* static assert
+* throw error if duplicate/overlapping polymorphic composites with same name and arguments exist
+* polymorphic wildcards e.g. <?> List
+* allow direct calling of function pointer values (rather than having to first store them in a variable)
+* add mechanism to do a clean refresh of runtime required resources
+* add a simpler way to get the name of an enum value at runtime
+* add error for duplicate field names
+* add runtime error for trying to use unconstructed instance of class
+* make better error message for incorrect constructor call
+* add more ability to control the representation for enum values
+* make list.add() be able to accept compatible class pointers
+* add ability to (optionally) have parameter names in function alias parameters
+* add ability to create function alias for above function (e.g. func alias CreateWindow ^)
+* add standard library method for random choice of element from arrays/lists/initializer-lists/etc
+* improve how Optional behaves with non-POD types like Strings, particularly creating them and checking them, e.g. some() and isSome()
+* add constructors for Optional
+* improve linux cross compilation
+* better error message for when accidentally doing `class Rectangle (w, h float) extends Shape` (should have `extends Shape` before fields)
+* add better backtracking error messages for when cannot instantiate polymorphic type e.g. for `value <NotExistentType> Optional`
+* anonymous generic compile-time sum types e.g. ubyte | String
+* add ability to use polymorphic parent class type in `extends` polymorphic prerequisite
+* fix bug with __defer__ calls for fixed arrays are not being generated in the automatic implementation of __defer__ inside of structs
+
+LOW-PRIORITY:
+* Finish 'Any'
+    * Casting to Any from non-builtin types
+* __assign__ for fixed arrays maybe
+* Allow polymorphic names for generic bases
+* Add full linux cross-compilation support
+* Make 'typeinfo' work better with aliases and '*void'
+* Add way to manually invoke DEINIT_SVARS
+* Maybe add support for methods on non-struct types, e.g. toString(this *$#N $T) String,  toString(this *int),  toUnique(this *ubyte) <ubyte> Unique,  etc.
+* Specify default value arguments by name (e.g - captLoadTexturesByFieldName(this, assetsFolder: where(), approximateByDefault: true) )
+* 'adept install https://github.com/IsaacShelton/Box2D'
+* match/when statement or something like that
+* macro/snippet functions? that expand to be inline and never become an actual function
+    ```
+    snippet func boundsCheck(this *<$T> Array, index usize) {
+        #if array_bounds_checks
+        if index >= this.length {
+            printf('<$%s> Array - error index out of bound\n', typenameof $T)
+        }
+        #end
+    }
+    ```
+* add higher-level main function signature when taking in arguments
+* maybe? add support for user-defined main signatures (via __main_signature__ for example)
+* add toString for Vector2f and friends
+* add __equals__ and __not_equals__ [will require POD version]
+* add toString for Optional? [will require POD version]
+* ability to mark individual functions as deprecated
+* add way to escape strings in 'String.adept'
+* modernize built-in JSON parsing library
+* change color printing code on Windows to use posix escape codes (now that they're supported)
+* remove old `.dep` packages
+* parse arguments before reading config, and never check for updates when using options such as `--root`, `-h`, and `--help`
+* include trace back for `Encountered undetermined polymorphic type '$T' in type '$T'` error
+* `delete[count] pointer` syntax to allow for __defer__/delete in single step
+* modernize random in standard library to utilize `~>`? e.g. `random() ~> bool`, `random() ~> int`, `random() ~> double`, etc. or add `randomBool`
+
+v2.4 COMPLETED:
++ Standard Library Imports
++ [] operator overload
++ Better var args support
++ Ensure that trying to use variadic arguments without __variadic_array__ defined, fails smoothly
++ Better constants syntax
++ Scoped constants
++ ~> operator
++ __as__
++ implicit vs explicit __as__
++ __initializer_list__
++ Replace 'const a = 0' with 'declare a = 0'
++ Allow for '*void' as an alternative to 'ptr'
+
+v2.5 COMPLETED:
++ anonymous structures and unions
++ anonymous fields (with structures and unions)
++ typenameof expression
++ embed
++ 'repeat' loops with custom 'idx' name
++ add '\0'ub and make sure other '\0' forms exist
++ add support for 'thing1().thing2().thing3()' statements
++ fill in runtime type information for complex composite types
++ __compiler_major__, __compiler_minor__, __compiler_release__, __compiler_qualifier__
++ make __compiler_version__ a number, and add __compiler_version_name__
++ alignof expression
+
+v2.6 COMPLETED:
++ records
++ fixed arrays of size determined at compile time
++ variable sized fixed arrays inside of data structures
++ __assign__ auto-generation
++ no more "new update" false-positives for preview builds
++ optional parameter names for foreign functions
++ changed '$T' polymorphs to always allow built-in auto conversions (equivalent to '$~T' in previous versions) 
++ conditionless blocks
+
+v2.7 COMPLETED:
++ "exhaustive" marked return types (aka nodiscard / must_use)
++ "= delete" functions/methods (aka disallow)
++ update README.md examples
++ don't show "must return a value" error for when it's unreachable
++ make `Pair` and friends in standard library into records
++ add new-style constructors to standard library types (constructors in the same case as the type name)
++ support for disallowing/disencouraging assignment for a composite type
++ add 'unreachable' IR for unreachable ends of functions
++ runtime error on usage of donor strings with standard library functions (enabled by default)
++ rename StringOwnership::DONATED to StringOwnership::DONOR
++ runtime donor runtime errors for List (and add .give())
++ runtime donor runtime errors for Grid (and add .give())
++ modernize and remove obsolete functions from '2.7/String.adept', '2.7/List.adept' and '2.7/Grid.adept'
++ add __assign__ for Optional
++ completely rewrote lexer
++ easy and consistent constructors (prerequisite for classes)
++ throw warning/error if trying to define __as__ as a method
++ add mechanism "#runtime_resource" to allow copying files to output location that are needed at runtime
++ classes, virtual methods, and virtual dispatch
++ add auto conversion between compatible class pointers
++ add `foreign enum` to allow for enums whose values don't require the `EnumName::` prefix
++ changed meta directive #halt to return 1 and added #done directive for equivalent that returns 0
++ resolve incorrect behavior with implicit loose polymorphs
+
+v2.8 COMPLETED:
++ migrate uses of deprecated LLVM functions to their replacements
++ add values for unknown enums, e.g. `::KIND`
++ added ability to compile/link against Window's resource files with `pragma windres "my_resource.rc"` (even when cross compiling)
++ add way for constructors to not generate stand-alone helper functions [adding via `in constructor`]
++ do proper implementation of replace(*String, T, T) so that replacement strings are able to contain the needle string
++ added runtime error for attempting to call virtual method on unconstructed class instance
++ added user-defined runtime assertions via `assert EXPRESSION` and `assert EXPRESSION, MESSAGE`
++ added `__assertion_failed__` user-definable special function for handling failed assertions, supports messages of arbitrary types, standard implementations can be imported from `2.8/assertions.adept` or specific implementations from `2.8/assertions/*.adept`
++ added anonymous enums, e.g. `enum (FRUIT, VEGETABLE, GRAIN)`
++ added `__flat_enum__` polymorphic prerequisite
++ lots of bug fixes and quality of life improvements
++ add plural unknown enum values, e.g. functionThatAcceptsEnum( x ? (y ? ::CAT : ::DOG) : ::BAT )
++ allow trailing comma for enum members
++ make enum syntax less strict
++ allow '+=', '-=', etc. with definitions of '__add__', '__subtract__', etc.

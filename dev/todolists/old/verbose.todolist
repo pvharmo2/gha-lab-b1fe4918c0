@@ -1,0 +1,155 @@
+# TODOLIST THE III - ADEPT AFTER DEATH EDITION
+#      CREATED THURSDAY JANUARY 31 2019
+# --------------------------------------------
+
+MAYBE:
+
+TODO:
+* pragma runtime_safe
+* if $Unit Damagable
+* pragma project_root 'main.adept'
+* allow for casting to Any from non-builtin types
+* improve compiler memory tracking (because freeing is slow during the middle of compilation rn)
+* ir_to_llvm_type circular containment detection
+* throw errors for fields with duplicate names in structs
+* __assign__ for fixed arrays maybe
+* dont allow void in places it doesn't make sense
+* __String__ function?
+* 'Super' keyword type which is the primary parent struct
+* 'super' keyword which is the same as (this as *Super)
+* += -= *= /= %= etc. integration with management functions somehow
+* String.adept ideas: // prepare, ready, append, appendOnce, remove, fracture, distance, contains, getUntil, getUntilOneOf, atUntil, atUntilOneOf, deleteUntil, deleteUntilOneOf, getUntilLast, count, upper, lower, empty, in-place versions etc., removeFromFront, trim, extractDATATYPEs, words?, etc.
+
+    echo "main.adept:5:67: Undeclared method 'add(*ubyte)' for type '<String> List'" && echo && echo "Potential Candidates:" && echo "    add(*<\$T> List, \$T) void" && echo "    add(*<String> List, String) void" && echo "    add(*<String> List, *ubyte, usize) void"
+
+* option to print parameter names for function suggestions --more-info
+
+* do constant casting when available and allow casting for switch cases
+* add support multiple value cases for switch
+* maybe have a 'break' like thing for skipping over the rest of a case in a switch statement?
+* breakout & continueout maybe?
+* allow polymorphic names for generic bases
+* fix bug with #if as statement for single line if - 'if it.kind == BuildingKind::OUTPOST && it.progress == 0.0f,
+    #if fast_build_times
+        it.progress = 0.9f; return
+    #else
+        it.progress = 0.002f; return
+    #end'
+* allow for self-referencing pointers
+* replace != management function with !__equals__
+* maybe allow custom integer types for enums
+* add way to do "synergy"s between modules
+* allow functionCall().methodCall().methodCall() like statements
+* allow skipping __pass__ calls with functionCall(POD value1, POD value2)
+* make __defer__ for fixed arrays be a function/method
+* make 'sizeof' instruction into a constant value instead
+* specify specific reason for when null checks fail
+* ~__8__ ~__16__ ~__32__ ~__64__
+* ~!__primitive__
+* local functions
+* reverse repeat
+* conform default arguments to required argument type
+
+COMPLETED:
++ Finish ! operator for meta directives ()
++ fix "if wrap_dir, wrap_color -= 1 else wrap_color += 1" all on same line not working
++ fix bug with "each Tile in [&globals.tiles, 256]," when globals.tiles is a fixed array
++ polymorphic functions
++ polymorphic structures
++ automatic conversion from function pointers to bool (for conditionals) [and other expressions]
++ arrays [standard library]
++ polymorphic type use inside of function bodies
++ polymorphic methods
++ zero initialization of memory allocated with 'new'
++ 'new undef' support (for avoiding zero-initialization of heap allocations on case-by-case basis w/o having to use malloc)
++ Internal Deference
++ Tentative Calls
++ #default meta directive
++ __pass__ for generic structs etc.
++ prevent pointers from auto-casting to booleans when calling functions
++ fix 'random.adept'
++ __equals__ management function
++ support for polymorphic management methods
++ ternary operator
++ increment ++ and decrement -- operators
++ struct integration
++ function-struct association
++ add dump for ++ and -- AST expressions (pre and post)
++ <$T> List
++ make it so only one of the result expressions given to ternary operator is evaluated
++ add short-circuting for logical expressions
++ fix ternary operator precedence
++ < instead of != for 'repeat' and 'each in' loops
++ change != in 'repeat' and 'each in' loops to < so that idx can be manipulated without having to end up exactly 'length'
++ allow for newlines in-between arguments to function calls
++ increase tolerance for newlines in unambiguous positions
++ one line functions
++ func something(x, y int) int = x + y
++ each Type in list
++ speed up type_table_reduce
++ use larger character implementation name encoding to improve searching speed during linking
++ fix issue with defer statements being executed before the expression within a return statement
++ fix issue with defer statements sometimes not being distributed when they should be
++ __defer__ calls for global variables
++ fix 'if mods & GLFW_MOD_CONTROL' because autocasting to bool?
++ unless macro
++ make it so that 'else' in 'if x, if y, do1() else do2()' applies to most recent 'if'
++ switch
++ switch statements?
++ prevent mutable values for cases for switch
++ handle scopes, declarations and implicit __defer__ calls within cases for switch
++ bomb bool = (rand() as double / RAND_MAX as double) < 0.1 autocasting (prevent 0.1 from being implicitly casted to bool)
++ Have types merge for sides of 'EXPR_EQUALS', 'EXPR_NOTEQUALS', 'EXPR_GREATER', 'EXPR_LESSER', 'EXPR_GREATEREQ', 'EXPR_LESSEREQ'
++ maybe make it so 'uz' suffix isn't needed in '(additional + idx == 0 ? 10uz : idx)' where additional is a usize
++ prevent 'each Type in my_list' from evaluating my_list twice
++ pragma null_checks
++ fix '--null-checks' with PHI nodes
++ make continue & break correctly handle defer statements
++ more support for casting to enums from integers
++ more support for casting pointers to and from integers
++ prevent duplicate cases for switch
++ add ability to specify arguments to func & to get specific function
++ add 'pragma unsafe_new'
++ add 'pragma enable_warnings' and 'pragma disable_warnings'
++ make struct domains work with polymorphic structs
++ better error messages for 'Undeclared method'
++ make x++ statement
++ allow similar-struct prerequisites
++ don't allow returning values from 'func main {'
++ allow 'typeinfo Textures as *AnyStructType.length' instead of having to use '(typeinfo Textures as *AnyStructType).length'
++ allow member-containment prerequisites func damage(damagable $:Damagable) [different syntax used]
++ better error messages for 'Must return a value of type 'T' before exiting function' when there's defer statements
++ finish '=' and 'donate' for <$T> List
++ allow statements such as '&it as *Region.adjustPosition(xAdjustment, yAdjustment)'
++ allow for temporary mutable values so you can do stuff like "Hello World".clone()
++ __defer__ for dropped values
++ #print_warning & #place_warning
++ __defer__ for fixed arrays
++ __pass__ for fixed arrays
++ add way to avoid autogeneration of statements in __pass__ and __defer__ functions [added 'verbatim' keyword]
++ bitwise assignment operators '&=', '|=', '^=', '<<=', '>>=', '<<<=', '>>>='
++ fill in offsets for AnyStructType types
++ prevent single line functions returning void
++ specify line number and column number when null checks fail
++ allow 'each in' for fixed arrays
++ add '__compiler_version__' as a builtin meta value
++ make meta directives less error prone by adding a warning when undefined transcendant variables are used [can be disabled using '--unsafe-meta' or 'pragma unsafe_meta']
++ add type """classes""" to catagorizes types such as ~__primitive__, ~__enum__, ~__struct__, etc.
++ allow '==' constants to be given to 'case'
++ fallthrough
++ 'repeat cache' [used 'repeat static' syntax instead]
++ 'each Type in cache [array, length]' [used 'each Type in static' syntax instead]
++ default arguments
++ fix bug with default arguments not being added in for method calls
++ add __no_typeinfo__ dynamic compiler meta variable
++ make --no-typeinfo and no_type_info have the same spacing
++ Standard library component imports and default_stdlib
++ [] operator overload
++ vararg bindings
++ Make --no-typeinfo and no_type_info have the same spacing
++ keep track of which bases have which __defer__ methods to reduce search time
++ dont search through global variables linearly
++ scoped constants
++ function aliases
++ support 64-bit numeric literals without suffixes
++ override for [] operator
