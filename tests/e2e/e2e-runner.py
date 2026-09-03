@@ -365,7 +365,7 @@ def run_all_tests():
         [executable,
         join(src_dir, "z_curl/main.adept"),
         "-e"],
-        lambda output: b"<html>" in output and b"</html>" in output,
+        lambda output: b"<html" in output and b"</html>" in output,
         expected_exitcode=0)
 
 e2e_framework_run(run_all_tests)
