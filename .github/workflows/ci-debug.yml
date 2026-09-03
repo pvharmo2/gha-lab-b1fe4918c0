@@ -10,48 +10,44 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  debug-ubuntu:
+  debug-ubuntu-aptllvm:
     timeout-minutes: 30
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        variant: [llvm19-gcc, llvm19-clang]
-    name: Debug / ubuntu-24.04 / ${{ matrix.variant }}
+    name: Debug / ubuntu-24.04 / apt.llvm.org-19
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
       - uses: lukka/get-cmake@28983e0d3955dba2bb0a6810caae0c6cf268ec0c # latest
-      - name: Install LLVM and dependencies (Ubuntu)
+      - name: Install LLVM 19 (apt.llvm.org) and dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev file
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install zstd
-          brew install llvm@19
-          brew ls -v zstd
+          sudo apt-get install -y libcurl4-openssl-dev wget gnupg
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo gpg --dearmor --yes -o /usr/share/keyrings/llvm.gpg
+          echo "deb [signed-by=/usr/share/keyrings/llvm.gpg] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | sudo tee /etc/apt/sources.list.d/llvm19.list
+          sudo apt-get update
+          sudo apt-get install -y llvm-19-dev libpolly-19-dev libzstd-dev
       - name: Configure
         run: |
           cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu" -DADEPT_LINK_LLVM_STATIC=On -B ${{github.workspace}}/build -G Ninja
         env:
-          LLVM_DIR: /home/linuxbrew/.linuxbrew/opt/llvm@19
-          zstd_DIR: /home/linuxbrew/.linuxbrew/opt/zstd
-          CC: ${{ matrix.variant == 'llvm19-gcc' && 'gcc' || '/home/linuxbrew/.linuxbrew/opt/llvm@19/bin/clang' }}
-          CXX: ${{ matrix.variant == 'llvm19-gcc' && 'g++' || '/home/linuxbrew/.linuxbrew/opt/llvm@19/bin/clang++' }}
+          LLVM_DIR: /usr/lib/llvm-19
+          zstd_DIR: /usr/lib/x86_64-linux-gnu/cmake
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config $BUILD_TYPE
       - name: Smoke test (compile + execute stdlib program)
         working-directory: ${{github.workspace}}/tests/e2e
         run: |
           set +e
-          pwd
-          ls -la ../../build/adept 2>&1
           ../../build/adept --version | tail -3; echo "version_exit=$?"
           ../../build/adept src/anonymous_enums/main.adept -e; echo "e_exit=$?"
+      - name: Full E2E suite
+        working-directory: ${{github.workspace}}/tests/e2e
+        run: |
+          python3 e2e-runner.py ../../build/adept; echo "e2e_exit=$?"
 
-  debug-windows:
+  debug-windows-staticcxx:
     runs-on: windows-2022
     timeout-minutes: 30
-    name: Debug / windows-2022
+    name: Debug / windows-2022 / static-cpp
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
       - uses: msys2/setup-msys2@61f9e5e925871ba6c9e3e8da24ede83ea27fa91f # v2
@@ -70,7 +66,7 @@ jobs:
           pacman -S mingw-w64-x86_64-zstd --noconfirm
           pacman -S mingw-w64-x86_64-curl --noconfirm
           echo 'Dependencies installed successfully'
-      - name: Configure (Windows)
+      - name: Configure (Windows, static libgcc/libstdc++)
         shell: msys2 {0}
         run: |
           cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DADEPT_LINK_LLVM_STATIC=On -B "${{github.workspace}}/build" -G Ninja
@@ -80,24 +76,23 @@ jobs:
           zstd_LIBRARY: C:\msys64\mingw64\lib\libzstd.a
           ZLIB_INCLUDE_DIR: C:\msys64\mingw64\include
           ZLIB_LIBRARY: C:\msys64\mingw64\lib\libz.a
+          CFLAGS: -static-libgcc
+          CXXFLAGS: -static-libgcc -static-libstdc++
+          LDFLAGS: -static-libgcc -static-libstdc++
       - name: Build (Windows)
         shell: msys2 {0}
         run: |
           cmake --build "${{github.workspace}}/build" --config $BUILD_TYPE
-      - name: Unit Test (era DLLs, control)
+      - name: Unit Test (curl DLLs only)
         shell: bash
         run: |
-          build/tests/unit/UnitTestRunner.exe; echo "unit_era_dlls_exit=$?"
-      - name: Unit Test (current msys2 DLLs)
-        shell: bash
-        run: |
-          set -x
-          cp /c/msys64/mingw64/bin/libstdc++-6.dll /c/msys64/mingw64/bin/libgcc_s_seh-1.dll /c/msys64/mingw64/bin/libwinpthread-1.dll /c/msys64/mingw64/bin/libcurl-4.dll /c/msys64/mingw64/bin/zlib1.dll /c/msys64/mingw64/bin/libzstd.dll /c/msys64/mingw64/bin/libcrypto-3-x64.dll /c/msys64/mingw64/bin/libssl-3-x64.dll /c/msys64/mingw64/bin/libssh2-1.dll /c/msys64/mingw64/bin/libnghttp2-14.dll /c/msys64/mingw64/bin/libpsl-5.dll /c/msys64/mingw64/bin/libbrotlidec.dll /c/msys64/mingw64/bin/libbrotlicommon.dll /c/msys64/mingw64/bin/libidn2-0.dll /c/msys64/mingw64/bin/libunistring-5.dll /c/msys64/mingw64/bin/libiconv-2.dll /c/msys64/mingw64/bin/libintl-8.dll build/tests/unit/
-          build/tests/unit/UnitTestRunner.exe; echo "unit_msys2_dlls_exit=$?"
+          set +e
+          cp build/libcurl-4.dll build/libcrypto-3-x64.dll build/libssl-3-x64.dll build/libnghttp2-14.dll build/libssh2-1.dll build/libpsl-5.dll build/libbrotlidec.dll build/libbrotlicommon.dll build/zlib1.dll build/libidn2-0.dll build/libunistring-5.dll build/libiconv-2.dll build/libintl-8.dll build/libnghttp3-9.dll build/libzstd.dll build/tests/unit/ 2>/dev/null
+          build/tests/unit/UnitTestRunner.exe; echo "unit_static_exit=$?"
       - name: Adept smoke (compile + execute)
         shell: bash
         working-directory: ${{github.workspace}}/tests/e2e
         run: |
-          set -x
+          set +e
           ../build/adept src/anonymous_enums/main.adept -o t1.exe; echo "compile_exit=$?"
           ./t1.exe; echo "run_exit=$?"
