@@ -91,7 +91,7 @@ jobs:
           sudo apt-get install -y libcurl4-openssl-dev
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install zstd
-          brew install llvm
+          brew install llvm@20
           brew ls -v zstd
       - name: Configure (macOS)
         if: ${{ matrix.os == 'macos-15' }}
@@ -109,7 +109,7 @@ jobs:
         run: |
           cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu" -DADEPT_LINK_LLVM_STATIC=On -B ${{github.workspace}}/build -G Ninja
         env:
-          LLVM_DIR: /home/linuxbrew/.linuxbrew/opt/llvm
+          LLVM_DIR: /home/linuxbrew/.linuxbrew/opt/llvm@20
           zstd_DIR: /home/linuxbrew/.linuxbrew/opt/zstd
       - name: Build (Windows)
         if: ${{ matrix.os == 'windows-2022' }}
