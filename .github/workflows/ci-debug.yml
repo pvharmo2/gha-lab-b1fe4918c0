@@ -16,14 +16,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [llvm19-gcc, llvm19-clang, llvm20-clang]
+        variant: [llvm19-gcc, llvm19-clang]
     name: Debug / ubuntu-24.04 / ${{ matrix.variant }}
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: lukka/get-cmake@28983e0d3955dba2bb0a6810caae0c6cf268ec0c # latest
       - name: Install LLVM and dependencies (Ubuntu)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libcurl4-openssl-dev file
+          sudo apt-get install -y libcurl4-openssl-dev file binutils
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           brew install zstd
           if [ "${{ matrix.variant }}" = "llvm20-clang" ]; then brew install llvm@20; else brew install llvm@19; fi
@@ -44,11 +45,13 @@ jobs:
         working-directory: ${{github.workspace}}/tests/e2e
         run: |
           set +e
+          pwd; ls -la ../ | head -8
+          ls -la ../build/adept 2>&1
+          file ../build/adept 2>&1
+          readelf -l ../build/adept 2>/dev/null | grep -i interpreter
           ../build/adept --version > /tmp/v.txt 2>&1; echo "version_exit=$?"
-          tail -3 /tmp/v.txt
-          ../build/adept src/anonymous_enums/main.adept -o /tmp/t1 2>&1 | head -5; echo "compile_exit=${PIPESTATUS[0]}"
-          file /tmp/t1 2>&1
-          /tmp/t1; echo "run_exit=$?"
+          tail -4 /tmp/v.txt
+          ../build/adept src/anonymous_enums/main.adept -e; echo "e_exit=$?"
 
   debug-windows:
     runs-on: windows-2022
@@ -90,13 +93,16 @@ jobs:
         shell: bash
         run: |
           set -x
+          pwd
+          ls -la build/tests/unit/
           cp build/*.dll build/tests/unit/
-          build/tests/unit/UnitTestRunner; echo "unit_exit=$?"
+          build/tests/unit/UnitTestRunner.exe; echo "unit_exit=$?"
+          file build/tests/unit/UnitTestRunner.exe
       - name: Adept smoke (compile + execute)
         shell: bash
         working-directory: ${{github.workspace}}/tests/e2e
         run: |
           set -x
-          ../build/adept src/anonymous_enums/main.adept -o /tmp/t1.exe; echo "compile_exit=$?"
-          file /tmp/t1.exe || true
-          /tmp/t1.exe; echo "run_exit=$?"
+          ../build/adept src/anonymous_enums/main.adept -o t1.exe; echo "compile_exit=$?"
+          file t1.exe || true
+          ./t1.exe; echo "run_exit=$?"
