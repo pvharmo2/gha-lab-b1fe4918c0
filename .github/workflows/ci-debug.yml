@@ -1,0 +1,102 @@
+name: CI Debug (toolchain diagnostics, scratch)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths: [ '.github/workflows/ci-debug.yml' ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  debug-ubuntu:
+    timeout-minutes: 30
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [llvm19-gcc, llvm19-clang, llvm20-clang]
+    name: Debug / ubuntu-24.04 / ${{ matrix.variant }}
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - name: Install LLVM and dependencies (Ubuntu)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcurl4-openssl-dev file
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install zstd
+          if [ "${{ matrix.variant }}" = "llvm20-clang" ]; then brew install llvm@20; else brew install llvm@19; fi
+          brew ls -v zstd
+      - name: Configure
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_PREFIX_PATH="/usr/lib/x86_64-linux-gnu" -DADEPT_LINK_LLVM_STATIC=On -B ${{github.workspace}}/build -G Ninja
+        env:
+          LLVM_DIR: ${{ matrix.variant == 'llvm20-clang' && '/home/linuxbrew/.linuxbrew/opt/llvm@20' || '/home/linuxbrew/.linuxbrew/opt/llvm@19' }}
+          zstd_DIR: /home/linuxbrew/.linuxbrew/opt/zstd
+          CC: ${{ matrix.variant == 'llvm19-gcc' && 'gcc' || '/home/linuxbrew/.linuxbrew/opt/llvm@19/bin/clang' }}
+          CXX: ${{ matrix.variant == 'llvm19-gcc' && 'g++' || (matrix.variant == 'llvm20-clang' && '/home/linuxbrew/.linuxbrew/opt/llvm@20/bin/clang++' || '/home/linuxbrew/.linuxbrew/opt/llvm@19/bin/clang++') }}
+          CFLAGS: -static-libstdc++
+          CXXFLAGS: -static-libstdc++
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config $BUILD_TYPE
+      - name: Smoke test (compile + execute stdlib program)
+        working-directory: ${{github.workspace}}/tests/e2e
+        run: |
+          set +e
+          ../build/adept --version > /tmp/v.txt 2>&1; echo "version_exit=$?"
+          tail -3 /tmp/v.txt
+          ../build/adept src/anonymous_enums/main.adept -o /tmp/t1 2>&1 | head -5; echo "compile_exit=${PIPESTATUS[0]}"
+          file /tmp/t1 2>&1
+          /tmp/t1; echo "run_exit=$?"
+
+  debug-windows:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    name: Debug / windows-2022
+    steps:
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+      - uses: msys2/setup-msys2@61f9e5e925871ba6c9e3e8da24ede83ea27fa91f # v2
+        with:
+          msystem: mingw64
+          update: true
+          install: git mingw-w64-x86_64-gcc
+      - name: Setup MSYS2
+        shell: msys2 {0}
+        run: |
+          pacman -S mingw-w64-x86_64-cmake --noconfirm
+          pacman -S mingw-w64-x86_64-ninja --noconfirm
+          pacman -S mingw-w64-x86_64-gcc --noconfirm
+          pacman -S mingw-w64-x86_64-llvm --noconfirm
+          pacman -S mingw-w64-x86_64-zlib --noconfirm
+          pacman -S mingw-w64-x86_64-zstd --noconfirm
+          pacman -S mingw-w64-x86_64-curl --noconfirm
+          echo 'Dependencies installed successfully'
+      - name: Configure (Windows)
+        shell: msys2 {0}
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DADEPT_LINK_LLVM_STATIC=On -B "${{github.workspace}}/build" -G Ninja
+        env:
+          LLVM_DIR: ${{github.workspace}}/llvm/llvm/build
+          zstd_DIR: C:\msys64\mingw64
+          zstd_LIBRARY: C:\msys64\mingw64\lib\libzstd.a
+          ZLIB_INCLUDE_DIR: C:\msys64\mingw64\include
+          ZLIB_LIBRARY: C:\msys64\mingw64\lib\libz.a
+      - name: Build (Windows)
+        shell: msys2 {0}
+        run: |
+          cmake --build "${{github.workspace}}/build" --config $BUILD_TYPE
+      - name: Unit Test (with shipped DLLs)
+        shell: bash
+        run: |
+          set -x
+          cp build/*.dll build/tests/unit/
+          build/tests/unit/UnitTestRunner; echo "unit_exit=$?"
+      - name: Adept smoke (compile + execute)
+        shell: bash
+        working-directory: ${{github.workspace}}/tests/e2e
+        run: |
+          set -x
+          ../build/adept src/anonymous_enums/main.adept -o /tmp/t1.exe; echo "compile_exit=$?"
+          file /tmp/t1.exe || true
+          /tmp/t1.exe; echo "run_exit=$?"
