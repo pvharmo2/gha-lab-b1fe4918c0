@@ -210,9 +210,9 @@ jobs:
         run: |
           set -e
           for dir in build build/tests/unit; do
-            cp /c/msys64/mingw64/bin/libstdc++-6.dll \
-               /c/msys64/mingw64/bin/libgcc_s_seh-1.dll \
-               /c/msys64/mingw64/bin/libwinpthread-1.dll \
+            cp /mingw64/bin/libstdc++-6.dll \
+               /mingw64/bin/libgcc_s_seh-1.dll \
+               /mingw64/bin/libwinpthread-1.dll \
                "$dir/"
           done
           echo 'Vendored mingw runtime DLLs refreshed with current msys2 versions'
@@ -230,14 +230,8 @@ jobs:
         if: ${{ matrix.os == 'windows-2022' }}
         working-directory: ${{github.workspace}}/e2e
         run: |
-          $env:Path = "C:/msys64/mingw64/bin;C:/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin;$env:Path"
+          $env:Path = "$env:RUNNER_TEMP/msys64/mingw64/bin;C:/msys64/mingw64/bin;C:/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/bin;$env:Path"
           python3 e2e-runner.py ../build/adept
-      - name: TEMP DEBUG adept -e (ubuntu)
-        if: ${{ matrix.os == 'ubuntu-24.04' || matrix.os == 'ubuntu-22.04' }}
-        working-directory: ${{github.workspace}}/e2e
-        run: |
-          ../build/adept --version 2>&1; echo "version_exit=$?"
-          ../build/adept src/anonymous_enums/main.adept -e 2>&1; echo "run_exit=$?"
       - name: E2E Test (Unix)
         if: ${{ matrix.os != 'windows-2022' }}
         working-directory: ${{github.workspace}}/e2e
