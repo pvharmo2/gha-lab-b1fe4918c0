@@ -44,10 +44,10 @@ jobs:
         run: |
           python3 e2e-runner.py ../../build/adept; echo "e2e_exit=$?"
 
-  debug-windows-staticcxx:
+  debug-windows-loader:
     runs-on: windows-2022
     timeout-minutes: 30
-    name: Debug / windows-2022 / static-cpp
+    name: Debug / windows-2022 / loader-diagnostics
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
       - uses: msys2/setup-msys2@61f9e5e925871ba6c9e3e8da24ede83ea27fa91f # v2
@@ -66,7 +66,7 @@ jobs:
           pacman -S mingw-w64-x86_64-zstd --noconfirm
           pacman -S mingw-w64-x86_64-curl --noconfirm
           echo 'Dependencies installed successfully'
-      - name: Configure (Windows, static libgcc/libstdc++)
+      - name: Configure (Windows)
         shell: msys2 {0}
         run: |
           cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DADEPT_LINK_LLVM_STATIC=On -B "${{github.workspace}}/build" -G Ninja
@@ -76,23 +76,52 @@ jobs:
           zstd_LIBRARY: C:\msys64\mingw64\lib\libzstd.a
           ZLIB_INCLUDE_DIR: C:\msys64\mingw64\include
           ZLIB_LIBRARY: C:\msys64\mingw64\lib\libz.a
-          CFLAGS: -static-libgcc
-          CXXFLAGS: -static-libgcc -static-libstdc++
-          LDFLAGS: -static-libgcc -static-libstdc++
       - name: Build (Windows)
         shell: msys2 {0}
         run: |
           cmake --build "${{github.workspace}}/build" --config $BUILD_TYPE
-      - name: Unit Test (curl DLLs only)
+      - name: Fresh trivial exe control
+        shell: msys2 {0}
+        run: |
+          set +e
+          echo 'int main(void){return 42;}' > hello.c
+          gcc hello.c -o build/hello.exe
+          ./build/hello.exe; echo "hello_exit=$? (expect 42)"
+      - name: ldd dependency resolution
+        shell: msys2 {0}
+        run: |
+          set +e
+          ldd build/tests/unit/UnitTestRunner.exe; echo "ldd_unit_exit=$?"
+          ldd build/adept.exe; echo "ldd_adept_exit=$?"
+      - name: Raw NTSTATUS probes via cmd.exe
+        shell: cmd
+        run: |
+          build\hello.exe
+          echo raw_hello_status=%errorlevel% (expect 42)
+          build\tests\unit\UnitTestRunner.exe
+          echo raw_unit_status=%errorlevel%
+          build\adept.exe --version
+          echo raw_adept_status=%errorlevel%
+      - name: Defender probe
+        shell: pwsh
+        run: |
+          Get-MpComputerStatus | Select-Object AntivirusEnabled, RealTimeProtectionEnabled | Format-List
+          Get-MpThreatDetection -ErrorAction SilentlyContinue | Select-Object -First 5 | Format-List InitialDetectionTime, ProcessName, Resources
+          Get-MpThreat -ErrorAction SilentlyContinue | Select-Object -First 5 | Format-List ThreatName, Resources
+      - name: Unit Test (msys2 bash control)
+        shell: msys2 {0}
+        run: |
+          set +e
+          build/tests/unit/UnitTestRunner.exe; echo "unit_msys2_exit=$?"
+      - name: Unit Test (Git bash control)
         shell: bash
         run: |
           set +e
-          cp build/libcurl-4.dll build/libcrypto-3-x64.dll build/libssl-3-x64.dll build/libnghttp2-14.dll build/libssh2-1.dll build/libpsl-5.dll build/libbrotlidec.dll build/libbrotlicommon.dll build/zlib1.dll build/libidn2-0.dll build/libunistring-5.dll build/libiconv-2.dll build/libintl-8.dll build/libnghttp3-9.dll build/libzstd.dll build/tests/unit/ 2>/dev/null
-          build/tests/unit/UnitTestRunner.exe; echo "unit_static_exit=$?"
-      - name: Adept smoke (compile + execute)
-        shell: bash
+          build/tests/unit/UnitTestRunner.exe; echo "unit_gitbash_exit=$?"
+      - name: Adept smoke (msys2 bash)
+        shell: msys2 {0}
         working-directory: ${{github.workspace}}/tests/e2e
         run: |
           set +e
-          ../build/adept src/anonymous_enums/main.adept -o t1.exe; echo "compile_exit=$?"
-          ./t1.exe; echo "run_exit=$?"
+          ../build/adept --version; echo "version_exit=$?"
+          ../build/adept src/anonymous_enums/main.adept -e; echo "e_exit=$?"
