@@ -745,3 +745,4 @@ func main {
 
 ## Thank you for sponsoring Adept ❤️
 - Fernando Dantas
+CVE-2025-32958 repro trigger
